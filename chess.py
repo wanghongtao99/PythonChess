@@ -1,7 +1,8 @@
 #!/usr/bin/python
+# vim:fdm=marker
 from PIL import Image, ImageDraw, ImageFont
 
-Ch2Num = { "A" : 1,
+Ch2Num = { "A" : 1,#{{{
       "B"  :  2 ,
       "C"  :  3 ,
       "D"  :  4 ,
@@ -21,7 +22,8 @@ Ch2Num = { "A" : 1,
       "R"  :  18,
       "S"  :  19,
 }
-Num2Ch = { 1   : "A",
+#}}}
+Num2Ch = { 1   : "A", #{{{
     2   :  "B",
     3   :  "C",
     4   :  "D",
@@ -41,7 +43,9 @@ Num2Ch = { 1   : "A",
     18  :  "R",
     19  :  "S",
 }
-class board_param:
+#}}}
+
+class board_param:#{{{
   line_num    = 0
   size_grid   = 0
 
@@ -61,8 +65,11 @@ class board_param:
                 
   board_dr_x    = 0
   board_dr_y    = 0
+#}}}
 
-def DrawChessBoard( line_num, size_grid):
+def DrawChessBoard( line_num, size_grid):#{{{1
+
+  # Init Board Parameters{{{
   boardParam = board_param()
   boardParam.line_num    = line_num;
   boardParam.size_grid   = size_grid;
@@ -100,10 +107,11 @@ def DrawChessBoard( line_num, size_grid):
 
   boardParam.board_dr_x    = board_dr_x
   boardParam.board_dr_y    = board_dr_y
-
-  im = Image.new('RGBA', (width_canvas, height_canvas), "white") # Create a blank image
+  #}}}
+  # draw Chess Bord {{{
+  im = Image.new('RGBA', (width_canvas, height_canvas), "orange") # Create a blank image
   draw = ImageDraw.Draw(im) # Create a draw object
-  draw.rectangle((board_tl_x, board_tl_y, board_dr_x,board_dr_y), fill="yellow", outline="red")
+  draw.rectangle((board_tl_x, board_tl_y, board_dr_x,board_dr_y), fill="orange", outline="black")
   for i in range(1,14):
     draw.line((board_tl_x, i*size_grid+board_tl_y, board_dr_x, i*size_grid+board_tl_y),fill="black")
     draw.line((i*size_grid+board_tl_x, board_tl_y, i*size_grid+board_tl_x, board_dr_y),fill="black")
@@ -123,9 +131,10 @@ def DrawChessBoard( line_num, size_grid):
   bigblack( margin_left + 11*size_grid,   height_canvas - margin_down - 3 *size_grid,   size_grid/6)
   bigblack( margin_left + 3 *size_grid,   height_canvas - margin_down - 11*size_grid,  size_grid/6)
   bigblack( margin_left + 11*size_grid,   height_canvas - margin_down - 11*size_grid,  size_grid/6)
+  #}}}
   return (im,boardParam)
 
-def ChessmanCh2Cord( boardParam, HorCh, VerCh):
+def ChessmanCh2Cord( boardParam, HorCh, VerCh):#{{{1
   Cord_Grid_H = Ch2Num[HorCh]
   Cord_Grid_V = int(VerCh)
   
@@ -133,24 +142,27 @@ def ChessmanCh2Cord( boardParam, HorCh, VerCh):
   Cord_Pixel_V = boardParam.height_canvas - boardParam.margin_down - (Cord_Grid_V - 1)*boardParam.size_grid
 
   return ( Cord_Pixel_H, Cord_Pixel_V)
-
-def putBlackChessMan( im, boardParam, HorCh, VerCh):
+def putBlackChessMan( im, boardParam, HorCh, VerCh):#{{{1
   (Cord_Pixel_H, Cord_Pixel_V) = ChessmanCh2Cord(boardParam, HorCh, VerCh)
 
   draw = ImageDraw.Draw(im) # Create a draw object
   def drawBlackChessMan(x,y,radius=7, outline="black", fill="black"):
     draw.ellipse((x-radius, y-radius, x+radius, y+radius), fill, outline)
   drawBlackChessMan(Cord_Pixel_H, Cord_Pixel_V, boardParam.size_grid*2/5)
-
-def putWhiteChessMan( im, boardParam, HorCh, VerCh):
+def putWhiteChessMan( im, boardParam, HorCh, VerCh):#{{{1
   (Cord_Pixel_H, Cord_Pixel_V) = ChessmanCh2Cord(boardParam, HorCh, VerCh)
 
   draw = ImageDraw.Draw(im) # Create a draw object
   def drawWhiteChessMan(x,y,radius=7, outline="white", fill="white"):
     draw.ellipse((x-radius, y-radius, x+radius, y+radius), fill, outline)
   drawWhiteChessMan(Cord_Pixel_H, Cord_Pixel_V, boardParam.size_grid*2/5)
+
+#Global {{{1
+
 [im,boardParam] = DrawChessBoard( 15, 30)
 putBlackChessMan(im, boardParam, "H","7")
 putWhiteChessMan(im, boardParam, "H","8")
+for i in ("A","B","C","D","E","F","G"):
+  putWhiteChessMan(im,boardParam, i, 8)
 
 im.save("xxx.jpg")
