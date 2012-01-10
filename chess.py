@@ -1,6 +1,10 @@
 #!/usr/bin/python
 # vim:fdm=marker
+# Import..... {{{
 from PIL import Image, ImageDraw, ImageFont
+import ImageTk
+import Tkinter
+#}}}
 
 Ch2Num = { "A" : 1,#{{{
       "B"  :  2 ,
@@ -123,8 +127,8 @@ def DrawChessBoard( line_num, size_grid):#{{{1
   for i in range(1,16):
     draw.text((margin_left - size_grid*5/6, height_canvas - margin_down - size_grid/4 - (i-1)*size_grid), str(i), fill="black", font=font)
 
-  def bigblack(x,y,radius=3, outline=0, fill="black"):
-    draw.ellipse((x-radius, y-radius, x+radius, y+radius), outline, fill)
+  def bigblack(x,y,radius=3, outline="black", fill="black"):
+    draw.ellipse((x-radius, y-radius, x+radius, y+radius), fill, outline)
 
   bigblack( margin_left + 7 *size_grid,   height_canvas - margin_down - 7 *size_grid,   size_grid/6)
   bigblack( margin_left + 3 *size_grid,   height_canvas - margin_down - 3 *size_grid,   size_grid/6)
@@ -164,5 +168,14 @@ putBlackChessMan(im, boardParam, "H","7")
 putWhiteChessMan(im, boardParam, "H","8")
 for i in ("A","B","C","D","E","F","G"):
   putWhiteChessMan(im,boardParam, i, 8)
+
+root = Tkinter.Tk()  # A root window for displaying objects
+
+# Convert the Image object into a TkPhoto object
+tkimage = ImageTk.PhotoImage(im)
+Tkinter.Label(root, image=tkimage).pack() # Put it in the display window
+Tkinter.Button(root).pack() # Put it in the display window
+Tkinter.Button(root).pack() # Put it in the display window
+root.mainloop() # Start the GUI
 
 im.save("xxx.jpg")
