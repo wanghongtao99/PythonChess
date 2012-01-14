@@ -49,26 +49,64 @@ Num2Ch = { 1   : "A", #{{{
 }
 #}}}
 
+###  Classes #{{{
+class ChessBoard(Tkinter.Label):#{{{
+
+  def __init__(self, parent, boardParam, im):
+
+    self.tkimage = ImageTk.PhotoImage(im)
+
+    Tkinter.Label.__init__(self, parent, image=self.tkimage)
+
+    self.boardParam = boardParam
+    self.parent = parent
+    self.im = im
+    self.colorChess = "black"
+    self.initUI()
+
+  def initUI(self):
+
+    self.parent.title("FIR")
+    self.bind('<Button-1>',self.clickAction)
+    self.pack( expand=1)
+
+  def clickAction(self, event):
+
+    (Ch_H, Ch_V) = Cord2ChessmanCh( boardParam, event.x, event.y)
+    if self.colorChess == "white":
+      putWhiteChessMan( self.im, boardParam, Ch_H, Ch_V)
+    else:
+      putBlackChessMan( self.im, boardParam, Ch_H, Ch_V)
+    self.tkimage = ImageTk.PhotoImage(self.im)
+    self.configure(image = self.tkimage)
+    if self.colorChess == "white":
+      self.colorChess = "black"
+    else:
+      self.colorChess = "white"
+
+#}}}
 class board_param:#{{{
   line_num    = 0
   size_grid   = 0
 
   size_board    = 0
-                
+
   margin_left   = 0
   margin_down   = 0
   margin_right  = 0
   margin_up     = 0
-                
-                
+
+
   width_canvas  = 0
   height_canvas = 0
-                
+
   board_tl_x    = 0
   board_tl_y    = 0
-                
+
   board_dr_x    = 0
   board_dr_y    = 0
+
+#}}}
 #}}}
 
 def DrawChessBoard( line_num, size_grid):#{{{1
@@ -116,15 +154,15 @@ def DrawChessBoard( line_num, size_grid):#{{{1
   im = Image.new('RGBA', (width_canvas, height_canvas), "orange") # Create a blank image
   draw = ImageDraw.Draw(im) # Create a draw object
   draw.rectangle((board_tl_x, board_tl_y, board_dr_x,board_dr_y), fill="orange", outline="black")
-  for i in range(1,14):
+  for i in range(1,line_num - 1):
     draw.line((board_tl_x, i*size_grid+board_tl_y, board_dr_x, i*size_grid+board_tl_y),fill="black")
     draw.line((i*size_grid+board_tl_x, board_tl_y, i*size_grid+board_tl_x, board_dr_y),fill="black")
 
   font = ImageFont.truetype("arial.ttf", size_grid*2/4)
 
-  for i in range(1,16):
+  for i in range(1,line_num + 1):
     draw.text((margin_left - size_grid/6 + size_grid*(i-1), height_canvas - margin_down + size_grid/10),Num2Ch[i], fill="black", font=font)
-  for i in range(1,16):
+  for i in range(1,line_num + 1):
     draw.text((margin_left - size_grid*5/6, height_canvas - margin_down - size_grid/4 - (i-1)*size_grid), str(i), fill="black", font=font)
 
   def bigblack(x,y,radius=3, outline="black", fill="black"):
@@ -141,11 +179,20 @@ def DrawChessBoard( line_num, size_grid):#{{{1
 def ChessmanCh2Cord( boardParam, HorCh, VerCh):#{{{1
   Cord_Grid_H = Ch2Num[HorCh]
   Cord_Grid_V = int(VerCh)
-  
+
   Cord_Pixel_H = boardParam.margin_left + (Cord_Grid_H-1)*boardParam.size_grid
   Cord_Pixel_V = boardParam.height_canvas - boardParam.margin_down - (Cord_Grid_V - 1)*boardParam.size_grid
 
   return ( Cord_Pixel_H, Cord_Pixel_V)
+
+def Cord2ChessmanCh( boardParam, x, y):#{{{1
+  Cord_Grid_H = ( (x + boardParam.size_grid/2 ) - boardParam.margin_left ) / boardParam.size_grid + 1
+  Cord_Grid_V = ( boardParam.height_canvas - boardParam.margin_down - y + boardParam.size_grid/2 ) \
+      / boardParam.size_grid + 1
+
+  Ch_H = Num2Ch[Cord_Grid_H]
+  Ch_V = str(Cord_Grid_V)
+  return (Ch_H,Ch_V)
 def putBlackChessMan( im, boardParam, HorCh, VerCh):#{{{1
   (Cord_Pixel_H, Cord_Pixel_V) = ChessmanCh2Cord(boardParam, HorCh, VerCh)
 
@@ -164,18 +211,19 @@ def putWhiteChessMan( im, boardParam, HorCh, VerCh):#{{{1
 #Global {{{1
 
 [im,boardParam] = DrawChessBoard( 15, 30)
-putBlackChessMan(im, boardParam, "H","7")
-putWhiteChessMan(im, boardParam, "H","8")
-for i in ("A","B","C","D","E","F","G"):
-  putWhiteChessMan(im,boardParam, i, 8)
 
 root = Tkinter.Tk()  # A root window for displaying objects
 
 # Convert the Image object into a TkPhoto object
-tkimage = ImageTk.PhotoImage(im)
-Tkinter.Label(root, image=tkimage).pack() # Put it in the display window
-Tkinter.Button(root).pack() # Put it in the display window
-Tkinter.Button(root).pack() # Put it in the display window
+
+chessBoard = ChessBoard(root, boardParam, im)
+#Label = Tkinter.Label(root, image=tkimage) # Put it in the display window
+#Label.pack()
+
+#Tkinter.Label(root, image=tkimage).place(x=20,y=20) # Put it in the display window
+Tkinter.Button(root, text="OK").pack(side=Tkinter.LEFT) # Put it in the display window
+Tkinter.Button(root, text="OK2").pack(side=Tkinter.RIGHT) # Put it in the display window
+#Tkinter.Button(root).place(x = 10,y = boardParam.height_canvas + 2) # Put it in the display window
 root.mainloop() # Start the GUI
 
 im.save("xxx.jpg")
