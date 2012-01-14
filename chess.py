@@ -49,43 +49,74 @@ Num2Ch = { 1   : "A", #{{{
 }
 #}}}
 
-###  Classes #{{{
-class ChessBoard(Tkinter.Label):#{{{
+#  Classes #{{{1
+## Class ChessBoard {{{2
+class ChessBoard(Tkinter.Label):
+  def __init__(self, parent):#{{{3
 
-  def __init__(self, parent, boardParam, im):
 
-    self.tkimage = ImageTk.PhotoImage(im)
+    (self.im, self.boardParam) = DrawChessBoard( 15, 30)
+    self.tkimage = ImageTk.PhotoImage(self.im)
 
     Tkinter.Label.__init__(self, parent, image=self.tkimage)
-
-    self.boardParam = boardParam
     self.parent = parent
-    self.im = im
     self.colorChess = "black"
+    self.autoChangColor = 0
     self.initUI()
 
-  def initUI(self):
+  def initUI(self):#{{{3
 
     self.parent.title("FIR")
-    self.bind('<Button-1>',self.clickAction)
+    self.bind('<Button-1>',self.clickOnBoard)
     self.pack( expand=1)
 
-  def clickAction(self, event):
+    Button_black = Tkinter.Button(root, text="putBlack")
+    Button_black.pack(side=Tkinter.LEFT)
+    Button_black.bind('<Button-1>', self.clickBlackButton)
 
-    (Ch_H, Ch_V) = Cord2ChessmanCh( boardParam, event.x, event.y)
+    Button_white = Tkinter.Button(root, text="putWhite")
+    Button_white.pack(side=Tkinter.LEFT)
+    Button_white.bind('<Button-1>', self.clickBlackWhite)
+
+    Button_auto  = Tkinter.Button(root, text="BeginInTurn")
+    Button_auto.pack(side=Tkinter.LEFT)
+    Button_auto.bind('<Button-1>', self.clickBeginInTurn)
+
+    Button_stop_auto  = Tkinter.Button(root, text="EndInTurn")
+    Button_stop_auto.pack(side=Tkinter.LEFT)
+    Button_stop_auto.bind('<Button-1>', self.clickEndInTurn)
+
+  ###  Buttons {{{3
+  def clickBlackButton(self, event):
+    self.colorChess = "black"
+
+  def clickBlackWhite(self, event):
+    self.colorChess = "white"
+
+  def clickBeginInTurn(self, event):
+    self.autoChangColor = 1
+
+  def clickEndInTurn(self, event):
+    self.autoChangColor = 0
+  def clickOnBoard(self, event):#{{{3
+
+    (Ch_H, Ch_V) = Cord2ChessmanCh( self.boardParam, event.x, event.y)
     if self.colorChess == "white":
-      putWhiteChessMan( self.im, boardParam, Ch_H, Ch_V)
+      putWhiteChessMan( self.im, self.boardParam, Ch_H, Ch_V)
     else:
-      putBlackChessMan( self.im, boardParam, Ch_H, Ch_V)
+      putBlackChessMan( self.im, self.boardParam, Ch_H, Ch_V)
     self.tkimage = ImageTk.PhotoImage(self.im)
     self.configure(image = self.tkimage)
-    if self.colorChess == "white":
-      self.colorChess = "black"
-    else:
-      self.colorChess = "white"
+    if self.autoChangColor == 1:
+      if self.colorChess == "white":
+        self.colorChess = "black"
+      else:
+        self.colorChess = "white"
 
-#}}}
-class board_param:#{{{
+
+
+## Class board_param {{{2
+class board_param:
   line_num    = 0
   size_grid   = 0
 
@@ -106,12 +137,11 @@ class board_param:#{{{
   board_dr_x    = 0
   board_dr_y    = 0
 
-#}}}
-#}}}
+#}}}1
 
 def DrawChessBoard( line_num, size_grid):#{{{1
 
-  # Init Board Parameters{{{
+  # Init Board Parameters
   boardParam = board_param()
   boardParam.line_num    = line_num;
   boardParam.size_grid   = size_grid;
@@ -149,8 +179,8 @@ def DrawChessBoard( line_num, size_grid):#{{{1
 
   boardParam.board_dr_x    = board_dr_x
   boardParam.board_dr_y    = board_dr_y
-  #}}}
-  # draw Chess Bord {{{
+
+  # draw Chess Bord
   im = Image.new('RGBA', (width_canvas, height_canvas), "orange") # Create a blank image
   draw = ImageDraw.Draw(im) # Create a draw object
   draw.rectangle((board_tl_x, board_tl_y, board_dr_x,board_dr_y), fill="orange", outline="black")
@@ -173,9 +203,8 @@ def DrawChessBoard( line_num, size_grid):#{{{1
   bigblack( margin_left + 11*size_grid,   height_canvas - margin_down - 3 *size_grid,   size_grid/6)
   bigblack( margin_left + 3 *size_grid,   height_canvas - margin_down - 11*size_grid,  size_grid/6)
   bigblack( margin_left + 11*size_grid,   height_canvas - margin_down - 11*size_grid,  size_grid/6)
-  #}}}
-  return (im,boardParam)
 
+  return (im, boardParam)
 def ChessmanCh2Cord( boardParam, HorCh, VerCh):#{{{1
   Cord_Grid_H = Ch2Num[HorCh]
   Cord_Grid_V = int(VerCh)
@@ -210,20 +239,6 @@ def putWhiteChessMan( im, boardParam, HorCh, VerCh):#{{{1
 
 #Global {{{1
 
-[im,boardParam] = DrawChessBoard( 15, 30)
-
 root = Tkinter.Tk()  # A root window for displaying objects
-
-# Convert the Image object into a TkPhoto object
-
-chessBoard = ChessBoard(root, boardParam, im)
-#Label = Tkinter.Label(root, image=tkimage) # Put it in the display window
-#Label.pack()
-
-#Tkinter.Label(root, image=tkimage).place(x=20,y=20) # Put it in the display window
-Tkinter.Button(root, text="OK").pack(side=Tkinter.LEFT) # Put it in the display window
-Tkinter.Button(root, text="OK2").pack(side=Tkinter.RIGHT) # Put it in the display window
-#Tkinter.Button(root).place(x = 10,y = boardParam.height_canvas + 2) # Put it in the display window
+chessBoard = ChessBoard(root)
 root.mainloop() # Start the GUI
-
-im.save("xxx.jpg")
