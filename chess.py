@@ -62,6 +62,8 @@ class ChessBoard(Tkinter.Label):
     self.parent = parent
     self.colorChess = "black"
     self.autoChangColor = 0
+    self.NumOfStep = 1
+    self.MarkStep = 0
     self.initUI()
 
   def initUI(self):#{{{3
@@ -70,15 +72,15 @@ class ChessBoard(Tkinter.Label):
     self.bind('<Button-1>',self.clickOnBoard)
     self.pack( expand=1)
 
-    Button_black = Tkinter.Button(root, text="putBlack")
+    Button_black = Tkinter.Button(root, text="Black")
     Button_black.pack(side=Tkinter.LEFT)
     Button_black.bind('<Button-1>', self.clickBlackButton)
 
-    Button_white = Tkinter.Button(root, text="putWhite")
+    Button_white = Tkinter.Button(root, text="White")
     Button_white.pack(side=Tkinter.LEFT)
     Button_white.bind('<Button-1>', self.clickBlackWhite)
 
-    Button_auto  = Tkinter.Button(root, text="BeginInTurn")
+    Button_auto  = Tkinter.Button(root, text="InTurn")
     Button_auto.pack(side=Tkinter.LEFT)
     Button_auto.bind('<Button-1>', self.clickBeginInTurn)
 
@@ -86,7 +88,13 @@ class ChessBoard(Tkinter.Label):
     Button_stop_auto.pack(side=Tkinter.LEFT)
     Button_stop_auto.bind('<Button-1>', self.clickEndInTurn)
 
+    Button_save = Tkinter.Button(root, text="Save")
+    Button_save.pack(side=Tkinter.LEFT)
+    Button_save.bind('<Button-1>', self.clickBlackSave)
+
   ###  Buttons {{{3
+  def clickBlackSave(self, event):
+    self.im.save("/tmp/abc.jpg")
   def clickBlackButton(self, event):
     self.colorChess = "black"
 
@@ -95,16 +103,20 @@ class ChessBoard(Tkinter.Label):
 
   def clickBeginInTurn(self, event):
     self.autoChangColor = 1
+    self.MarkStep = 1
 
   def clickEndInTurn(self, event):
     self.autoChangColor = 0
+    self.MarkStep = 0
+
   def clickOnBoard(self, event):#{{{3
 
     (Ch_H, Ch_V) = Cord2ChessmanCh( self.boardParam, event.x, event.y)
-    if self.colorChess == "white":
-      putWhiteChessMan( self.im, self.boardParam, Ch_H, Ch_V)
+    if self.MarkStep == 1:
+      putChessMan( self.im, self.boardParam, Ch_H, Ch_V, self.colorChess, str(self.NumOfStep))
+      self.NumOfStep += 1
     else:
-      putBlackChessMan( self.im, self.boardParam, Ch_H, Ch_V)
+      putChessMan( self.im, self.boardParam, Ch_H, Ch_V, self.colorChess)
     self.tkimage = ImageTk.PhotoImage(self.im)
     self.configure(image = self.tkimage)
     if self.autoChangColor == 1:
@@ -198,11 +210,21 @@ def DrawChessBoard( line_num, size_grid):#{{{1
   def bigblack(x,y,radius=3, outline="black", fill="black"):
     draw.ellipse((x-radius, y-radius, x+radius, y+radius), fill, outline)
 
-  bigblack( margin_left + 7 *size_grid,   height_canvas - margin_down - 7 *size_grid,   size_grid/6)
-  bigblack( margin_left + 3 *size_grid,   height_canvas - margin_down - 3 *size_grid,   size_grid/6)
-  bigblack( margin_left + 11*size_grid,   height_canvas - margin_down - 3 *size_grid,   size_grid/6)
-  bigblack( margin_left + 3 *size_grid,   height_canvas - margin_down - 11*size_grid,  size_grid/6)
-  bigblack( margin_left + 11*size_grid,   height_canvas - margin_down - 11*size_grid,  size_grid/6)
+  x = margin_left + line_num/2 *size_grid
+  y = height_canvas - margin_down - line_num/2 *size_grid
+  bigblack( x, y, size_grid/6)
+  x = margin_left + line_num/4 *size_grid
+  y = height_canvas - margin_down - line_num/4 *size_grid
+  bigblack( x, y, size_grid/6)
+  x = margin_left + line_num*3/4 *size_grid
+  y = height_canvas - margin_down - line_num/4 *size_grid
+  bigblack( x, y, size_grid/6)
+  x = margin_left + line_num/4 *size_grid
+  y = height_canvas - margin_down - line_num*3/4 *size_grid
+  bigblack( x, y, size_grid/6)
+  x = margin_left + line_num*3/4 *size_grid
+  y = height_canvas - margin_down - line_num*3/4 *size_grid
+  bigblack( x, y, size_grid/6)
 
   return (im, boardParam)
 def ChessmanCh2Cord( boardParam, HorCh, VerCh):#{{{1
@@ -222,20 +244,27 @@ def Cord2ChessmanCh( boardParam, x, y):#{{{1
   Ch_H = Num2Ch[Cord_Grid_H]
   Ch_V = str(Cord_Grid_V)
   return (Ch_H,Ch_V)
-def putBlackChessMan( im, boardParam, HorCh, VerCh):#{{{1
+
+def putChessMan( im, boardParam, HorCh, VerCh, Color, CharDisplay = None):#{{{1
   (Cord_Pixel_H, Cord_Pixel_V) = ChessmanCh2Cord(boardParam, HorCh, VerCh)
 
-  draw = ImageDraw.Draw(im) # Create a draw object
-  def drawBlackChessMan(x,y,radius=7, outline="black", fill="black"):
-    draw.ellipse((x-radius, y-radius, x+radius, y+radius), fill, outline)
-  drawBlackChessMan(Cord_Pixel_H, Cord_Pixel_V, boardParam.size_grid*2/5)
-def putWhiteChessMan( im, boardParam, HorCh, VerCh):#{{{1
-  (Cord_Pixel_H, Cord_Pixel_V) = ChessmanCh2Cord(boardParam, HorCh, VerCh)
+  if Color == "black":
+    Ch_Color = "white"
+  else:
+    Ch_Color = "black"
 
   draw = ImageDraw.Draw(im) # Create a draw object
-  def drawWhiteChessMan(x,y,radius=7, outline="white", fill="white"):
-    draw.ellipse((x-radius, y-radius, x+radius, y+radius), fill, outline)
-  drawWhiteChessMan(Cord_Pixel_H, Cord_Pixel_V, boardParam.size_grid*2/5)
+  def drawChessMan(x,y,radius, color):
+    draw.ellipse((x-radius, y-radius, x+radius, y+radius), color, color)
+
+  drawChessMan(Cord_Pixel_H, Cord_Pixel_V, boardParam.size_grid*2/5, Color)
+
+  if not CharDisplay == None:
+    fontsize = (boardParam.size_grid -4 )*3/4
+    font = ImageFont.truetype("arial.ttf", fontsize)
+    (char_width, char_height) = font.getsize(CharDisplay)
+    print (char_width, char_height)
+    draw.text( (Cord_Pixel_H - char_width/2 , Cord_Pixel_V - char_height/2 + 1 ), CharDisplay, fill=Ch_Color, font=font)
 
 #Global {{{1
 
