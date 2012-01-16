@@ -6,6 +6,7 @@ import ImageTk
 import Tkinter
 #}}}
 
+# Global Variable  Ch2Num, Num2Ch {{{1
 Ch2Num = { "A" : 1,#{{{
       "B"  :  2 ,
       "C"  :  3 ,
@@ -27,7 +28,7 @@ Ch2Num = { "A" : 1,#{{{
       "S"  :  19,
 }
 #}}}
-Num2Ch = { 1   : "A", #{{{
+Num2Ch = {  1  : "A", #{{{
     2   :  "B",
     3   :  "C",
     4   :  "D",
@@ -48,6 +49,7 @@ Num2Ch = { 1   : "A", #{{{
     19  :  "S",
 }
 #}}}
+#}}}1
 
 #  Classes #{{{1
 ## Class ChessBoard {{{2
@@ -64,6 +66,7 @@ class ChessBoard(Tkinter.Label):
     self.autoChangColor = 0
     self.NumOfStep = 1
     self.MarkStep = 0
+    self.Steps = []
     self.initUI()
 
   def initUI(self):#{{{3
@@ -92,6 +95,14 @@ class ChessBoard(Tkinter.Label):
     Button_save.pack(side=Tkinter.LEFT)
     Button_save.bind('<Button-1>', self.clickBlackSave)
 
+    Button_clear = Tkinter.Button(root, text="Clear")
+    Button_clear.pack(side=Tkinter.LEFT)
+    Button_clear.bind('<Button-1>', self.clickClear)
+
+    Button_back = Tkinter.Button(root, text="back")
+    Button_back.pack(side=Tkinter.LEFT)
+    Button_back.bind('<Button-1>', self.clickBack)
+
   ###  Buttons {{{3
   def clickBlackSave(self, event):
     self.im.save("/tmp/abc.jpg")
@@ -109,14 +120,44 @@ class ChessBoard(Tkinter.Label):
     self.autoChangColor = 0
     self.MarkStep = 0
 
+  def clickClear(self, event):
+    (self.im, self.boardParam) = DrawChessBoard( self.boardParam.line_num, self.boardParam.size_grid)
+    self.tkimage = ImageTk.PhotoImage(self.im)
+    self.configure(image = self.tkimage)
+    self.colorChess = "black"
+    self.autoChangColor = 0
+    self.NumOfStep = 1
+    self.MarkStep = 0
+    self.Steps = []
+
+
+  def clickBack(self, event):
+    self.Steps.pop()
+    self.reDrawBoardAndChesses()
+    if self.NumOfStep > 0:
+      self.NumOfStep -= 1
+    if self.autoChangColor == 1:
+      if self.colorChess == "white":
+        self.colorChess = "black"
+      else:
+        self.colorChess = "white"
+
   def clickOnBoard(self, event):#{{{3
 
     (Ch_H, Ch_V) = Cord2ChessmanCh( self.boardParam, event.x, event.y)
+    CurStep = {}
+    CurStep["Ch_H"] = Ch_H
+    CurStep["Ch_V"] = Ch_V
+    CurStep["Color"] = self.colorChess
+    CurStep["NumOfStep"] = -1
     if self.MarkStep == 1:
+      CurStep["NumOfStep"] = self.NumOfStep
       putChessMan( self.im, self.boardParam, Ch_H, Ch_V, self.colorChess, str(self.NumOfStep))
       self.NumOfStep += 1
     else:
       putChessMan( self.im, self.boardParam, Ch_H, Ch_V, self.colorChess)
+
+    self.Steps.append(CurStep)
     self.tkimage = ImageTk.PhotoImage(self.im)
     self.configure(image = self.tkimage)
     if self.autoChangColor == 1:
@@ -124,6 +165,16 @@ class ChessBoard(Tkinter.Label):
         self.colorChess = "black"
       else:
         self.colorChess = "white"
+
+  def reDrawBoardAndChesses(self):#{{{3
+    (self.im, self.boardParam) = DrawChessBoard( self.boardParam.line_num, self.boardParam.size_grid)
+    for OneStep in self.Steps:
+      if not OneStep["NumOfStep"] == -1:
+        putChessMan( self.im, self.boardParam, OneStep["Ch_H"], OneStep["Ch_V"], OneStep["Color"], str(OneStep["NumOfStep"]))
+      else:
+        putChessMan( self.im, self.boardParam, OneStep["Ch_H"], OneStep["Ch_V"], OneStep["Color"])
+    self.tkimage = ImageTk.PhotoImage(self.im)
+    self.configure(image = self.tkimage)
 
 
 
@@ -263,7 +314,7 @@ def putChessMan( im, boardParam, HorCh, VerCh, Color, CharDisplay = None):#{{{1
     fontsize = (boardParam.size_grid -4 )*3/4
     font = ImageFont.truetype("arial.ttf", fontsize)
     (char_width, char_height) = font.getsize(CharDisplay)
-    print (char_width, char_height)
+    #print (char_width, char_height)
     draw.text( (Cord_Pixel_H - char_width/2 , Cord_Pixel_V - char_height/2 + 1 ), CharDisplay, fill=Ch_Color, font=font)
 
 #Global {{{1
