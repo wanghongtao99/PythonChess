@@ -68,6 +68,7 @@ class ChessBoard(Tkinter.Label):
     self.NumOfStep = 1
     self.MarkStep = 0
     self.Steps = []
+    self.BoardMap = {}
     self.initUI()
 
   def initUI(self):#{{{3
@@ -133,7 +134,8 @@ class ChessBoard(Tkinter.Label):
 
 
   def clickBack(self, event):
-    self.Steps.pop()
+    StepRemove = self.Steps.pop()
+    del self.BoardMap[StepRemove["Ch_H"] + StepRemove["Ch_V"]]
     self.reDrawBoardAndChesses()
     if self.NumOfStep > 0:
       self.NumOfStep -= 1
@@ -149,6 +151,9 @@ class ChessBoard(Tkinter.Label):
       return
 
     (Ch_H, Ch_V) = Cord2ChessmanCh( self.boardParam, event.x, event.y)
+    if self.BoardMap.get(Ch_H+Ch_V, 0) == 1:
+      return
+    self.BoardMap[Ch_H+Ch_V] = 1
     CurStep = {}
     CurStep["Ch_H"] = Ch_H
     CurStep["Ch_V"] = Ch_V
@@ -181,6 +186,7 @@ class ChessBoard(Tkinter.Label):
     self.configure(image = self.tkimage)
 
 
+#}}}2
 
 ## Class board_param {{{2
 class board_param:
