@@ -57,7 +57,8 @@ class ChessBoard(Tkinter.Label):
   def __init__(self, parent):#{{{3
 
 
-    (self.im, self.boardParam) = DrawChessBoard( 15, 30)
+    self.boardParam = ComputParams(15,30)
+    self.im = DrawChessBoard( self.boardParam )
     self.tkimage = ImageTk.PhotoImage(self.im)
 
     Tkinter.Label.__init__(self, parent, image=self.tkimage)
@@ -121,7 +122,7 @@ class ChessBoard(Tkinter.Label):
     self.MarkStep = 0
 
   def clickClear(self, event):
-    (self.im, self.boardParam) = DrawChessBoard( self.boardParam.line_num, self.boardParam.size_grid)
+    self.im = DrawChessBoard( self.boardParam)
     self.tkimage = ImageTk.PhotoImage(self.im)
     self.configure(image = self.tkimage)
     self.colorChess = "black"
@@ -143,6 +144,9 @@ class ChessBoard(Tkinter.Label):
         self.colorChess = "white"
 
   def clickOnBoard(self, event):#{{{3
+
+    if not PixelInBoard(self.boardParam, event.x, event.y):
+      return
 
     (Ch_H, Ch_V) = Cord2ChessmanCh( self.boardParam, event.x, event.y)
     CurStep = {}
@@ -167,7 +171,7 @@ class ChessBoard(Tkinter.Label):
         self.colorChess = "white"
 
   def reDrawBoardAndChesses(self):#{{{3
-    (self.im, self.boardParam) = DrawChessBoard( self.boardParam.line_num, self.boardParam.size_grid)
+    self.im = DrawChessBoard( self.boardParam )
     for OneStep in self.Steps:
       if not OneStep["NumOfStep"] == -1:
         putChessMan( self.im, self.boardParam, OneStep["Ch_H"], OneStep["Ch_V"], OneStep["Color"], str(OneStep["NumOfStep"]))
@@ -202,12 +206,7 @@ class board_param:
 
 #}}}1
 
-def DrawChessBoard( line_num, size_grid):#{{{1
-
-  # Init Board Parameters
-  boardParam = board_param()
-  boardParam.line_num    = line_num;
-  boardParam.size_grid   = size_grid;
+def ComputParams( line_num, size_grid):#{{{1
 
   size_board    = size_grid * (line_num-1)
 
@@ -226,6 +225,10 @@ def DrawChessBoard( line_num, size_grid):#{{{1
   board_dr_x = margin_left + size_board
   board_dr_y = height_canvas - margin_down
 
+  boardParam = board_param()
+  boardParam.line_num      = line_num;
+  boardParam.size_grid     = size_grid;
+
   boardParam.size_board    = size_board
 
   boardParam.margin_left   = margin_left
@@ -242,6 +245,31 @@ def DrawChessBoard( line_num, size_grid):#{{{1
 
   boardParam.board_dr_x    = board_dr_x
   boardParam.board_dr_y    = board_dr_y
+
+  return boardParam
+def DrawChessBoard( boardParam ):#{{{1
+
+  # Init Board Parameters
+  line_num    = boardParam.line_num;
+  size_grid   = boardParam.size_grid;
+
+
+  size_board    = boardParam.size_board
+
+  margin_left   = boardParam.margin_left
+  margin_down   = boardParam.margin_down
+  margin_right  = boardParam.margin_right
+  margin_up     = boardParam.margin_up
+
+
+  width_canvas  = boardParam.width_canvas
+  height_canvas = boardParam.height_canvas
+
+  board_tl_x    = boardParam.board_tl_x
+  board_tl_y    = boardParam.board_tl_y
+
+  board_dr_x    = boardParam.board_dr_x
+  board_dr_y    = boardParam.board_dr_y
 
   # draw Chess Bord
   im = Image.new('RGBA', (width_canvas, height_canvas), "orange") # Create a blank image
@@ -277,7 +305,7 @@ def DrawChessBoard( line_num, size_grid):#{{{1
   y = height_canvas - margin_down - line_num*3/4 *size_grid
   bigblack( x, y, size_grid/6)
 
-  return (im, boardParam)
+  return im
 def ChessmanCh2Cord( boardParam, HorCh, VerCh):#{{{1
   Cord_Grid_H = Ch2Num[HorCh]
   Cord_Grid_V = int(VerCh)
@@ -295,6 +323,18 @@ def Cord2ChessmanCh( boardParam, x, y):#{{{1
   Ch_H = Num2Ch[Cord_Grid_H]
   Ch_V = str(Cord_Grid_V)
   return (Ch_H,Ch_V)
+
+def PixelInBoard(boardParam, Cord_Pixel_H, Cord_Pixel_V): #{{{1
+  margin_left = boardParam.margin_left
+  size_board  = boardParam.size_board
+  margin_up   = boardParam.margin_up
+  if Cord_Pixel_H < margin_left - boardParam.size_grid/2 or \
+      Cord_Pixel_H >= margin_left + size_board + boardParam.size_grid/2:
+        return 0
+  if Cord_Pixel_V < margin_up - boardParam.size_grid/2 or \
+      Cord_Pixel_V >= margin_up + size_board + boardParam.size_grid/2:
+        return 0
+  return 1
 
 def putChessMan( im, boardParam, HorCh, VerCh, Color, CharDisplay = None):#{{{1
   (Cord_Pixel_H, Cord_Pixel_V) = ChessmanCh2Cord(boardParam, HorCh, VerCh)
